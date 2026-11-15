@@ -1,5 +1,14 @@
 package eu.kanade.presentation.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import eu.kanade.presentation.theme.TachiyomiPreviewTheme
+import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Close
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -22,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalDensity
@@ -63,6 +73,8 @@ fun AppStateBanners(
     downloadedOnlyMode: Boolean,
     incognitoMode: Boolean,
     indexing: Boolean,
+    onDownloadedOnlyClick: () -> Unit,
+    onIncognitoModeClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -90,6 +102,7 @@ fun AppStateBanners(
             ) {
                 val top = (mainInsetsTop - indexingHeight).coerceAtLeast(0)
                 DownloadedOnlyModeBanner(
+                    onClick = onDownloadedOnlyClick,
                     modifier = Modifier.windowInsetsPadding(WindowInsets(top = top)),
                 )
             }
@@ -104,6 +117,7 @@ fun AppStateBanners(
             ) {
                 val top = (mainInsetsTop - indexingHeight - downloadedOnlyHeight).coerceAtLeast(0)
                 IncognitoModeBanner(
+                    onClick = onIncognitoModeClick,
                     modifier = Modifier.windowInsetsPadding(WindowInsets(top = top)),
                 )
             }
@@ -125,33 +139,79 @@ fun AppStateBanners(
 }
 
 @Composable
-private fun DownloadedOnlyModeBanner(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(MR.strings.label_downloaded_only),
+private fun DownloadedOnlyModeBanner(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
         modifier = Modifier
+            .clickable(
+                onClickLabel = stringResource(MR.strings.action_disable),
+                role = Role.Button,
+                onClick = onClick
+            )
             .background(DownloadedOnlyBannerBackgroundColor)
             .fillMaxWidth()
             .padding(4.dp)
             .then(modifier),
-        color = MaterialTheme.colorScheme.onTertiary,
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.labelMedium,
-    )
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(MR.strings.label_downloaded_only),
+            color = MaterialTheme.colorScheme.onTertiary,
+            style = MaterialTheme.typography.labelMedium
+        )
+        Icon(
+            imageVector = MaterialSymbols.Rounded.Close,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onTertiary,
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .size(14.dp)
+        )
+    }
 }
 
 @Composable
-private fun IncognitoModeBanner(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(MR.strings.pref_incognito_mode),
-        modifier = Modifier
+private fun IncognitoModeBanner(
+    onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val clickModifier = if (onClick != null) {
+        Modifier.clickable(
+            onClickLabel = stringResource(MR.strings.action_disable),
+            role = Role.Button,
+            onClick = onClick,
+        )
+    } else {
+        Modifier
+    }
+    Row(
+        modifier = clickModifier
             .background(IncognitoModeBannerBackgroundColor)
             .fillMaxWidth()
             .padding(4.dp)
             .then(modifier),
-        color = MaterialTheme.colorScheme.onPrimary,
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.labelMedium,
-    )
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(MR.strings.pref_incognito_mode),
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        if (onClick != null) {
+            Icon(
+                imageVector = MaterialSymbols.Rounded.Close,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .size(14.dp),
+            )
+        }
+    }
 }
 
 @Composable
@@ -183,5 +243,28 @@ private fun IndexingDownloadBanner(modifier: Modifier = Modifier) {
                 }
             },
         )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AppStateBannersPreview() {
+    TachiyomiPreviewTheme {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            AppStateBanners(
+                downloadedOnlyMode = true,
+                incognitoMode = true,
+                indexing = false,
+                onDownloadedOnlyClick = {},
+                onIncognitoModeClick = {}
+            )
+            AppStateBanners(
+                downloadedOnlyMode = false,
+                incognitoMode = true,
+                indexing = false,
+                onDownloadedOnlyClick = {},
+                onIncognitoModeClick = {}
+            )
+        }
     }
 }
